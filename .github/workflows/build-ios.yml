@@ -33,18 +33,7 @@ jobs:
 
       - name: Upload IPA as artifact
         uses: actions/upload-artifact@v4
-        if: success()
         with:
           name: Prince-Lifestyle-Matrix-iOS
           path: build/ios/ipa/*.ipa
           retention-days: 7
-
-      - name: Upload build logs on failure
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: Build-Logs
-          path: |
-            build/
-            .dart_tool/
-          retention-days: 3
