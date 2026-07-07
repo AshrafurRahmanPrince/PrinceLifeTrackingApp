@@ -22,7 +22,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/prince_profile.png
     - assets/
   
   # Uncomment and update the following section if you want to include custom fonts

@@ -801,7 +801,7 @@ class _HabitCheckbox extends StatelessWidget {
               width: 0.5,
             ),
           ),
-          color: isChecked ? const Color(0xFF00D4FF).withValues(alpha: 0.1) : null,
+          color: isChecked ? Color.fromRGBO(0, 212, 255, 0.1) : null,
         ),
         child: Center(
           child: Container(
@@ -1024,8 +1024,7 @@ class HabitAnalysisTable extends StatelessWidget {
                                     child: Container(
                                       height: 6,
                                       decoration: BoxDecoration(
-                                        backgroundColor:
-                                            const Color(0xFF2A3150),
+                                        color: const Color(0xFF2A3150),
                                         borderRadius:
                                             BorderRadius.circular(3),
                                       ),
@@ -1137,8 +1136,8 @@ class WellnessTracker extends StatelessWidget {
                           height: 60,
                           decoration: BoxDecoration(
                             color: provider.currentMood == index
-                                ? const Color(0xFF00D4FF).withValues(alpha: 0.2)
-                                : const Color(0xFF0A0E27),
+                              ? Color.fromRGBO(0, 212, 255, 0.2)
+                              : const Color(0xFF0A0E27),
                             border: Border.all(
                               color: provider.currentMood == index
                                   ? const Color(0xFF00D4FF)
