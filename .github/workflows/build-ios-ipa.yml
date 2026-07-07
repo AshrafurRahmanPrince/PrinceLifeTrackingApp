@@ -1,72 +1,46 @@
-name: Build iOS IPA
+name: "Build iOS IPA"
 
 on:
   push:
-    branches:
-      - main
-      - develop
-  pull_request:
-    branches:
-      - main
-  workflow_dispatch:  # Allow manual trigger from Actions tab
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
-  build-ios:
-    name: Build iOS IPA
-    runs-on: macos-latest  # macOS required for iOS builds
-    
+  build:
+    runs-on: macos-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Setup Flutter
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.x'
-          cache: true
-      
+          channel: 'stable'
+          architecture: x64
+
       - name: Get Flutter dependencies
         run: flutter pub get
-      
-      - name: Build iOS app (Debug)
-        run: |
-          flutter build ios \
-            --no-codesign \
-            --debug
-      
-      - name: Create IPA directory
-        run: |
-          mkdir -p build/ios/ipa
-      
-      - name: Build IPA using xcodebuild
-        run: |
-          cd build/ios/Runner.xcodeproj
-          xcodebuild \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Debug \
-            -derivedDataPath ../build \
-            -archivePath ../build/Runner.xcarchive \
-            archive
-      
-      - name: Export IPA
-        run: |
-          xcodebuild \
-            -exportArchive \
-            -archivePath build/ios/build/Runner.xcarchive \
-            -exportOptionsPlist build/ios/ExportOptions.plist \
-            -exportPath build/ios/ipa
-      
+
+      - name: Build IPA without signing
+        run: flutter build ipa --no-codesign
+
       - name: Upload IPA as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: success()
         with:
           name: Prince-Lifestyle-Matrix-iOS
           path: build/ios/ipa/*.ipa
           retention-days: 7
-      
+
       - name: Upload build logs on failure
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: Build-Logs
@@ -74,84 +48,3 @@ jobs:
             build/
             .dart_tool/
           retention-days: 3
-
-  build-ios-release:
-    name: Build iOS IPA (Release)
-    runs-on: macos-latest
-    if: startsWith(github.ref, 'refs/tags/')  # Only on tags
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.19.x'
-          cache: true
-      
-      - name: Get Flutter dependencies
-        run: flutter pub get
-      
-      - name: Build iOS app (Release)
-        run: |
-          flutter build ios \
-            --no-codesign \
-            --release
-      
-      - name: Create ExportOptions.plist for Release
-        run: |
-          mkdir -p build/ios
-          cat > build/ios/ExportOptions.plist << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>development</string>
-            <key>signingStyle</key>
-            <string>automatic</string>
-            <key>stripSwiftSymbols</key>
-            <true/>
-            <key>teamID</key>
-            <string></string>
-            <key>thinning</key>
-            <string>&lt;none&gt;</string>
-          </dict>
-          </plist>
-          EOF
-      
-      - name: Build Release IPA using xcodebuild
-        run: |
-          cd build/ios
-          xcodebuild \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -derivedDataPath build \
-            -archivePath build/Runner.xcarchive \
-            archive
-      
-      - name: Export Release IPA
-        run: |
-          xcodebuild \
-            -exportArchive \
-            -archivePath build/ios/build/Runner.xcarchive \
-            -exportOptionsPlist build/ios/ExportOptions.plist \
-            -exportPath build/ios/ipa
-      
-      - name: Upload Release IPA as artifact
-        uses: actions/upload-artifact@v3
-        if: success()
-        with:
-          name: Prince-Lifestyle-Matrix-iOS-Release-${{ github.ref_name }}
-          path: build/ios/ipa/*.ipa
-          retention-days: 30
-      
-      - name: Create Release Notes
-        if: success()
-        run: |
-          echo "## Prince's Lifestyle Matrix - iOS Release" > release-notes.md
-          echo "Version: ${{ github.ref_name }}" >> release-notes.md
-          echo "Built: $(date)" >> release-notes.md
-          echo "Platform: iOS (Unsigned)" >> release-notes.md
