@@ -21,7 +21,12 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  # Paste these two lines exactly aligned with uses-material-design
+  config:
+    enable-swift-package-manager: false
+
   assets:
+    - assets/prince_profile.png
     - assets/
   
   # Uncomment and update the following section if you want to include custom fonts
